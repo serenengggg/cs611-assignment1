@@ -7,7 +7,7 @@
 Leakage guards
   - Nothing from lms_loan_daily is used as a feature (it describes the loan's future).
   - Clickstream is joined "as of" the application date: latest snapshot <= application date.
-  - No global statistics (mean/std imputation, scaling) are computed here - that belongs in the
+  - No global statistics (mean/std imputation, scaling) are computed here as that belongs in the
     training pipeline, fitted on the train split only.
 """
 import os
@@ -27,7 +27,7 @@ def read_silver(spark, name):
     return spark.read.parquet(os.path.join(SILVER, name))
 
 
-# ---------------------------------------------------------------- label store
+# Label store
 def build_label_store(spark):
     lms = read_silver(spark, "lms_loan_daily")
     lms = lms.filter(F.col("installment_num") == LABEL_MOB)
@@ -44,7 +44,7 @@ def build_label_store(spark):
     )
 
 
-# -------------------------------------------------------------- feature store
+# Feature store
 def build_feature_store(spark):
     attr = read_silver(spark, "attributes")
     fin = read_silver(spark, "financials")
@@ -55,7 +55,7 @@ def build_feature_store(spark):
         "loan_id", F.concat_ws("_", F.col("Customer_ID"), F.date_format("snapshot_date", "yyyy_MM_dd"))
     )
 
-    # --- clickstream: latest snapshot on or before the application date
+    # Clickstream: latest snapshot on or before the application date
     fe_cols = [f"fe_{i}" for i in range(1, 21)]
     c = click.select("Customer_ID", F.col("snapshot_date").alias("click_date"), *fe_cols)
     joined = df.select("Customer_ID", "snapshot_date").join(
@@ -70,7 +70,7 @@ def build_feature_store(spark):
     )
     df = df.join(latest, ["Customer_ID", "snapshot_date"], "left")
 
-    # --- engineered features (row-level, deterministic; nulls propagate)
+    # Engineered features (row-level, deterministic; nulls propagate)
     df = (
         df.withColumn("debt_to_income", F.col("Outstanding_Debt") / F.col("Annual_Income"))
         .withColumn("emi_to_salary", F.col("Total_EMI_per_month") / F.col("Monthly_Inhand_Salary"))
@@ -86,7 +86,7 @@ def build_feature_store(spark):
         )
     df = df.withColumn("no_loan_history", (F.col("Type_of_Loan") == "No Loan").cast("int")).drop("Type_of_Loan")
 
-    # --- categorical encoding (fixed vocabularies -> no fitting on the data)
+    # Categorical encoding (fixed vocabularies -> no fitting on the data)
     df = (
         df.withColumn("credit_mix_score", F.when(F.col("Credit_Mix") == "Bad", 0).when(F.col("Credit_Mix") == "Standard", 1)
                       .when(F.col("Credit_Mix") == "Good", 2))

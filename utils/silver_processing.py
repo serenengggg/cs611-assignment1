@@ -1,8 +1,7 @@
 """SILVER: cleaned, typed, validated, de-duplicated tables (one per bronze source).
 
-Rules: fix known dirty patterns (stray underscores, sentinels), cast to proper types,
-null-out values outside plausible business ranges (never impute here - imputation
-statistics must be learnt from the training split only, so that is left to modelling),
+Fix known dirty patterns (stray underscores, sentinels), cast to proper types,
+null-out values outside plausible business ranges,
 drop PII (Name, SSN) that has no modelling value.
 """
 import os
@@ -69,7 +68,7 @@ def clean_financials(df: DataFrame) -> DataFrame:
         .withColumn("Payment_Behaviour", F.when(F.col("Payment_Behaviour").rlike("^(Low|High)_spent_"), F.col("Payment_Behaviour")).otherwise("Unknown"))
         .withColumn("Type_of_Loan", F.coalesce(F.col("Type_of_Loan"), F.lit("No Loan")))
     )
-    # "10 Years and 9 Months" -> 129
+   
     df = df.withColumn(
         "Credit_History_Age_Months",
         (F.regexp_extract("Credit_History_Age", r"(\d+)\s+Years", 1).cast("int") * 12

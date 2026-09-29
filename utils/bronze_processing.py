@@ -1,7 +1,4 @@
 """BRONZE: raw data landed as-is (all columns as string), plus ingestion metadata.
-
-No cleaning, no typing, no filtering - bronze is the immutable source of truth
-that lets us reprocess silver/gold at any time.
 """
 import os
 from pyspark.sql import functions as F

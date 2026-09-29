@@ -7,3 +7,6 @@ __pycache__/
 # submission artefacts / course material
 Assignment1_code.zip
 Assignment 1.pdf
+
+# local archive, not part of submission
+_not_submitting/
