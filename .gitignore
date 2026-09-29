@@ -10,3 +10,7 @@ Assignment 1.pdf
 
 # local archive, not part of submission
 _not_submitting/
+
+# deck is submitted separately
+Presentation_Deck*.pdf
+Presentation_Deck*.pptx
